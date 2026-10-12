@@ -1,0 +1,556 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Del espectro visible al sonido</title>
+
+  <style>
+    :root {
+      --fondo: #f5f3ed;
+      --texto: #25251f;
+      --secundario: #68685f;
+      --borde: #d8d6cc;
+      --acento: #435e50;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--fondo);
+      color: var(--texto);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.6;
+    }
+
+    main {
+      width: min(760px, 92%);
+      margin: 0 auto;
+      padding: 48px 0 64px;
+    }
+
+    .sobrelinea {
+      font-size: 0.76rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--secundario);
+    }
+
+    h1 {
+      font-size: clamp(2rem, 6vw, 3.5rem);
+      line-height: 1.08;
+      font-weight: 500;
+      margin: 12px 0 18px;
+    }
+
+    .introduccion {
+      max-width: 620px;
+      color: var(--secundario);
+      margin-bottom: 36px;
+    }
+
+    .panel {
+      border: 1px solid var(--borde);
+      border-radius: 16px;
+      padding: clamp(18px, 4vw, 30px);
+      margin: 20px 0;
+      background: rgba(255,255,255,0.45);
+    }
+
+    .etiqueta {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+
+    .numero {
+      font-size: clamp(2.8rem, 10vw, 4.5rem);
+      line-height: 1.1;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .unidad {
+      color: var(--secundario);
+      font-size: 1rem;
+    }
+
+    .espectro {
+      position: relative;
+      height: 54px;
+      margin: 28px 0 8px;
+      border-radius: 7px;
+      background: linear-gradient(
+        to right,
+        #7b00b4 0%,
+        #263bff 15%,
+        #00a5ff 29%,
+        #00b84a 43%,
+        #d4df00 57%,
+        #ffb400 72%,
+        #ff4c00 86%,
+        #a80000 100%
+      );
+    }
+
+    .marcador {
+      position: absolute;
+      top: -7px;
+      left: 40.54%;
+      height: 68px;
+      width: 3px;
+      background: white;
+      border: 1px solid #242424;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .extremos {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--secundario);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      margin: 22px 0 12px;
+      accent-color: var(--acento);
+      cursor: pointer;
+    }
+
+    .datos {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .dato {
+      padding: 16px;
+      border: 1px solid var(--borde);
+      border-radius: 10px;
+      min-width: 0;
+    }
+
+    .dato small {
+      display: block;
+      color: var(--secundario);
+      margin-bottom: 6px;
+    }
+
+    .valor {
+      font-size: clamp(1.2rem, 4vw, 1.7rem);
+      overflow-wrap: anywhere;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .botones {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    button {
+      border: 1px solid var(--acento);
+      background: var(--acento);
+      color: white;
+      padding: 12px 18px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    button.secundario {
+      background: transparent;
+      color: var(--texto);
+      border-color: var(--borde);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .nota {
+      font-size: 0.87rem;
+      color: var(--secundario);
+    }
+
+    .estado {
+      min-height: 1.5em;
+      font-size: 0.9rem;
+      color: var(--acento);
+      margin-top: 12px;
+    }
+
+    .metodo {
+      border-left: 3px solid var(--acento);
+      padding-left: 16px;
+    }
+
+    .formula {
+      overflow-wrap: anywhere;
+      font-size: clamp(1rem, 3.5vw, 1.3rem);
+      padding: 12px 0;
+    }
+
+    footer {
+      margin-top: 40px;
+      border-top: 1px solid var(--borde);
+      padding-top: 20px;
+      color: var(--secundario);
+      font-size: 0.82rem;
+    }
+
+    @media (max-width: 480px) {
+      main {
+        padding-top: 30px;
+      }
+
+      .datos {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <div class="sobrelinea">Experimento de sonificación · 01</div>
+
+    <h1>Del espectro visible al sonido</h1>
+
+    <p class="introduccion">
+      ¿Cómo suena la luz? Explora las longitudes de onda visibles
+      y escucha su transformación en frecuencias audibles mediante
+      una regla matemática basada en potencias de dos.
+    </p>
+
+    <section class="panel">
+      <span class="etiqueta">Longitud de onda seleccionada</span>
+
+      <div>
+        <span class="numero" id="longitud">530</span>
+        <span class="unidad">nm</span>
+      </div>
+
+      <div
+        class="espectro"
+        role="img"
+        aria-label="Representación aproximada del espectro visible"
+      >
+        <div class="marcador" id="marcador"></div>
+      </div>
+
+      <div class="extremos">
+        <span>380 nm · Violeta</span>
+        <span>Rojo · 750 nm</span>
+      </div>
+
+      <label class="etiqueta" for="rango">
+        Selecciona una longitud de onda
+      </label>
+
+      <input
+        type="range"
+        id="rango"
+        min="380"
+        max="750"
+        step="1"
+        value="530"
+      >
+
+      <div class="extremos">
+        <span>380 nm</span>
+        <span id="longitudActual">530 nm</span>
+        <span>750 nm</span>
+      </div>
+
+      <div class="datos">
+        <div class="dato">
+          <small>Frecuencia de la luz</small>
+          <div class="valor" id="frecuenciaLuz">5,66 × 10¹⁴</div>
+          <span class="unidad">Hz</span>
+        </div>
+
+        <div class="dato">
+          <small>Frecuencia del sonido</small>
+          <div class="valor" id="frecuenciaSonido">514,5</div>
+          <span class="unidad">Hz</span>
+        </div>
+      </div>
+
+      <div class="botones">
+        <button id="reproducir">Escuchar tono</button>
+        <button id="detener" class="secundario" disabled>
+          Detener
+        </button>
+        <button id="recorrer" class="secundario">
+          Recorrer espectro
+        </button>
+      </div>
+
+      <div class="estado" id="estado" aria-live="polite"></div>
+
+      <p class="nota">
+        Necesitas permitir el audio en tu navegador. La reproducción
+        genera un tono sinusoidal; no reproduce una grabación.
+      </p>
+    </section>
+
+    <section class="panel">
+      <div class="sobrelinea">Método</div>
+      <h2>Una transformación matemática</h2>
+
+      <p>
+        Primero calculamos la frecuencia de la luz a partir de su
+        longitud de onda. Luego la dividimos por una potencia de dos
+        para trasladarla al rango audible.
+      </p>
+
+      <div class="metodo">
+        <div class="formula">
+          f<sub>luz</sub> = c / λ
+        </div>
+
+        <div class="formula">
+          f<sub>sonido</sub> = f<sub>luz</sub> / 2<sup>40</sup>
+        </div>
+
+        <div class="formula">
+          f<sub>sonido</sub> ≈ 272 664 / λ(nm)
+        </div>
+      </div>
+
+      <p class="nota">
+        El exponente 40 es una decisión metodológica. La conversión
+        es matemática: no significa que un color tenga una frecuencia
+        sonora propia.
+      </p>
+    </section>
+
+    <footer>
+      Sonificación del espectro visible · Rango de trabajo: 380–750 nm.
+      Las fronteras cromáticas son aproximadas.
+    </footer>
+  </main>
+
+  <script>
+    // Constantes físicas y parámetros del experimento.
+    const C = 299792458; // Velocidad de la luz, m/s
+    const N = 40;        // Exponente fijo de reducción
+    const MIN = 380;     // Longitud de onda mínima, nm
+    const MAX = 750;     // Longitud de onda máxima, nm
+
+    const rango = document.getElementById("rango");
+    const longitud = document.getElementById("longitud");
+    const longitudActual = document.getElementById("longitudActual");
+    const frecuenciaLuz = document.getElementById("frecuenciaLuz");
+    const frecuenciaSonido = document.getElementById("frecuenciaSonido");
+    const marcador = document.getElementById("marcador");
+    const estado = document.getElementById("estado");
+
+    const botonReproducir = document.getElementById("reproducir");
+    const botonDetener = document.getElementById("detener");
+    const botonRecorrer = document.getElementById("recorrer");
+
+    let audioContext = null;
+    let oscilador = null;
+    let ganancia = null;
+    let intervalo = null;
+    let recorriendo = false;
+
+    // Recibe una longitud de onda en nm y devuelve
+    // la frecuencia luminosa en Hz.
+    function calcularFrecuenciaLuz(nm) {
+      const lambdaMetros = nm * 1e-9;
+      return C / lambdaMetros;
+    }
+
+    // Convierte la frecuencia luminosa en una frecuencia audible.
+    function calcularFrecuenciaSonido(nm) {
+      return calcularFrecuenciaLuz(nm) / Math.pow(2, N);
+    }
+
+    function formatoCientifico(numero) {
+      return numero
+        .toExponential(2)
+        .replace(".", ",")
+        .replace("e+", " × 10^")
+        .replace("e", " × 10^");
+    }
+
+    function formatoDecimal(numero) {
+      return numero.toLocaleString("es-CL", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+      });
+    }
+
+    // Actualiza los valores visuales para una longitud de onda.
+    function actualizarVista() {
+      const nm = Number(rango.value);
+      const luz = calcularFrecuenciaLuz(nm);
+      const sonido = calcularFrecuenciaSonido(nm);
+      const posicion = ((nm - MIN) / (MAX - MIN)) * 100;
+
+      longitud.textContent = nm;
+      longitudActual.textContent = nm + " nm";
+      frecuenciaLuz.textContent = formatoCientifico(luz);
+      frecuenciaSonido.textContent = formatoDecimal(sonido) + " Hz";
+      marcador.style.left = posicion + "%";
+
+      // Mantiene el tono activo sincronizado con el control.
+      if (oscilador && audioContext) {
+        oscilador.frequency.setTargetAtTime(
+          sonido,
+          audioContext.currentTime,
+          0.025
+        );
+      }
+    }
+
+    async function prepararAudio() {
+      if (!audioContext) {
+        const AudioContextClass =
+          window.AudioContext || window.webkitAudioContext;
+
+        if (!AudioContextClass) {
+          throw new Error("Este navegador no admite Web Audio.");
+        }
+
+        audioContext = new AudioContextClass();
+
+        oscilador = audioContext.createOscillator();
+        ganancia = audioContext.createGain();
+
+        oscilador.type = "sine";
+        oscilador.frequency.value =
+          calcularFrecuenciaSonido(Number(rango.value));
+
+        // Evita un clic brusco al iniciar o detener el sonido.
+        ganancia.gain.value = 0;
+
+        oscilador.connect(ganancia);
+        ganancia.connect(audioContext.destination);
+        oscilador.start();
+      }
+
+      if (audioContext.state === "suspended") {
+        await audioContext.resume();
+      }
+    }
+
+    async function reproducir() {
+      try {
+        await prepararAudio();
+
+        detenerRecorrido();
+
+        ganancia.gain.cancelScheduledValues(audioContext.currentTime);
+        ganancia.gain.setTargetAtTime(
+          0.12,
+          audioContext.currentTime,
+          0.025
+        );
+
+        botonReproducir.disabled = true;
+        botonDetener.disabled = false;
+        botonRecorrer.disabled = false;
+
+        estado.textContent =
+          "Reproduciendo " +
+          formatoDecimal(calcularFrecuenciaSonido(Number(rango.value))) +
+          " Hz.";
+      } catch (error) {
+        estado.textContent = error.message;
+      }
+    }
+
+    function detenerTono() {
+      detenerRecorrido();
+
+      if (audioContext && ganancia) {
+        ganancia.gain.cancelScheduledValues(audioContext.currentTime);
+        ganancia.gain.setTargetAtTime(
+          0,
+          audioContext.currentTime,
+          0.025
+        );
+      }
+
+      botonReproducir.disabled = false;
+      botonDetener.disabled = true;
+      botonRecorrer.disabled = false;
+      estado.textContent = "Reproducción detenida.";
+    }
+
+    function detenerRecorrido() {
+      if (intervalo !== null) {
+        clearInterval(intervalo);
+        intervalo = null;
+      }
+
+      recorriendo = false;
+    }
+
+    async function recorrerEspectro() {
+      try {
+        await prepararAudio();
+        detenerRecorrido();
+
+        recorriendo = true;
+        botonReproducir.disabled = true;
+        botonDetener.disabled = false;
+        botonRecorrer.disabled = true;
+
+        ganancia.gain.setTargetAtTime(
+          0.12,
+          audioContext.currentTime,
+          0.025
+        );
+
+        // Recorre 380 a 750 nm en aproximadamente 12 segundos.
+        const duracion = 12000;
+        const inicio = performance.now();
+
+        estado.textContent = "Recorriendo el espectro de violeta a rojo…";
+
+        intervalo = setInterval(() => {
+          const transcurrido = performance.now() - inicio;
+          const progreso = Math.min(transcurrido / duracion, 1);
+
+          const nm = Math.round(MIN + progreso * (MAX - MIN));
+          rango.value = nm;
+          actualizarVista();
+
+          if (progreso >= 1) {
+            detenerRecorrido();
+
+            botonReproducir.disabled = false;
+            botonDetener.disabled = false;
+            botonRecorrer.disabled = false;
+
+            estado.textContent = "Recorrido completo: 380–750 nm.";
+          }
+        }, 40);
+      } catch (error) {
+        estado.textContent = error.message;
+      }
+    }
+
+    rango.addEventListener("input", actualizarVista);
+    botonReproducir.addEventListener("click", reproducir);
+    botonDetener.addEventListener("click", detenerTono);
+    botonRecorrer.addEventListener("click", recorrerEspectro);
+
+    actualizarVista();
+  </script>
+</body>
+</html>
